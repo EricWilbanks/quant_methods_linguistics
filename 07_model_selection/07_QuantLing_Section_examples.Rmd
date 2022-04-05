@@ -1,0 +1,134 @@
+---
+title: "07_QuantLing_Section"
+author: "Eric Wilbanks"
+date: "3/06/2020 - 3/09/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{css echo=FALSE}
+.example{
+  background-color: rgba(30,206,124,.5);
+}
+```
+
+## 1. Goals for Section
+
+1. Questions?
+1. Correlation and Simple Models
+1. Modified Stepwise Backward Selection
+1. Picking review topics / section evals
+
+## 2. Chinese Character Handwriting: Wang et al. 2019
+
+Let's look at a dataset of a Chinese Character Handwriting experiment, where the experiments measured the time it took after they heard the word to write the character (`Latency`), the `Duration` it took to write the character, and the `Accuracy` with which the participants wrote the character. [[These data are from Wang et al., 2019: https://link.springer.com/article/10.3758%2Fs13428-019-01206-4]]
+
+```{r}
+library(ggplot2)
+
+# read in data-set
+chars <- read.table(url("https://static-content.springer.com/esm/art%3A10.3758%2Fs13428-019-01206-4/MediaObjects/13428_2019_1206_MOESM1_ESM.txt"),header=T)
+
+# remove NAs
+chars <- chars[!is.na(chars$Latency_z),]
+
+# create a binary factor for Age of Acquisition (word acquired at a young age versus at an old age)
+chars$AoAbin <- as.factor(ifelse(chars$AoA > mean(chars$AoA),'old','young'))
+
+# Calculate correlation between latency and numbers of meanings
+cor(chars$nMeaning, chars$Latency_z)
+
+# plot latency by number of meanings
+ggplot(chars, aes(nMeaning,Latency_z)) + geom_point() + geom_smooth(method='lm')
+```
+
+```
+1. Fit a model predicting writing latency by the number of meanings
+2. Using the linear model output, create the equation for predicting writing latencies
+2. Using this equation, predict what the latency would be for a character with 7 meanings
+```
+
+```{r, class.source="example",include=TRUE}
+library(lme4)
+m <- lm(Latency_z ~ nMeaning, chars)
+
+# get the coefficients from the model
+line_int <- m$coefficients[1]
+line_slope <- m$coefficients[2]
+
+# option A: manually predict for nMeaning = 7
+line_int + line_slope * 7
+
+# option B: create a function that does this automatically for any x
+predict_m <- function(x){line_int + line_slope*x}
+predict_m(7)
+
+# visualize what the model's line formula looks like
+ggplot(chars, aes(nMeaning,Latency_z)) + geom_point() + geom_abline(intercept = line_int, slope = line_slope, color = 'purple')
+```
+
+```{r, include=FALSE}
+m <- lm(Latency_z ~ nMeaning, chars)
+```
+
+We can get predicted values from this model using the fitted() function. We'll store these as a new column in the data-frame. 
+
+```{r}
+# calculate the predicted (fitted) values from the model
+chars$predicted <- fitted(m)
+```
+
+```
+1. What are the differences between our observed and predicted values called?
+2. Calculate these differences and store them as a new column.
+3. Create a density plot of these differences; what do you observe?
+```
+
+```{r, class.source="example",include=TRUE}
+# calculate the residuals (difference between observed and predicted)
+chars$residuals <- chars$Latency_z - chars$predicted
+
+# visualize the residuals
+ggplot(chars, aes(residuals)) + geom_density()
+
+# they're mostly normally distributed, with a mean of approx. 0
+```
+
+## 3. Modified Stepwise Backwards Selection (MSBS)
+
+```
+What is this procedure? How does it work? When do we use it?
+```
+
+```{r, class.source="example",include=TRUE}
+# This is a procedure for selecting model predictors that we use when we're comparing competing models: 
+# 1. Fit model with all factors you're considering
+# 2. Fit new model with removed predictor with highest non-significant p-value
+# 3. Compare model-fit (e.g., using AIC/BIC), choosing the model with the best fit
+# 4. Repeat 2-3 until you don't improve model fit or until you've removed all non-significant predictors
+```
+
+```
+Using the MSBS procedure, consider a maximal model that predicts latency by (1) nMeaning, (2) FreqContext, (3) zImageability, (4) AoAbin, (5) SRO. Find the optimal model, making sure to report both information criteria measures for each model.
+```
+
+```{r, class.source="example",include=TRUE}
+m1 <- lm(Latency_z ~ nMeaning + FreqContext + zImageability + AoAbin + SRO, chars)
+summary(m1)
+
+m2 <- lm(Latency_z ~ nMeaning + FreqContext + zImageability + AoAbin, chars)
+summary(m2)
+
+m3 <- lm(Latency_z ~ FreqContext + zImageability + AoAbin, chars)
+summary(m3)
+
+AIC(m1,m2,m3)
+BIC(m1,m2,m3)
+
+```
+
+## 4. Midterm Topics Selection - Midterm Evals
+
+https://forms.gle/beLsH3vPzPZYwusZA

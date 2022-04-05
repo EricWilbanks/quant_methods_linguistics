@@ -1,0 +1,60 @@
+---
+title: "12_QuantLing_Section"
+author: "Eric Wilbanks"
+date: "4/24/2020 - 4/27/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{css echo=FALSE}
+.example{
+  background-color: rgba(30,206,124,.5);
+}
+```
+
+## 1. Goals for Section
+
+1. HW4 Overview
+1. Compiling Images in RMD
+1. FSA and Regex Practice 
+
+## 2. Other Questions?
+
+## 3. HW4 Overview
+
+Let's look through HW4; what questions do you have? Some of them we'll get to during section examples.
+
+## 4. draw.io
+
+You can create your FSAs however you want (even on paper and take a picture of it!); I'd suggest using draw.io.
+
+**Let's look at an example**
+
+![Example 1](./fsa_pngs/example1.png)
+
+
+1. Let's open the draw.io file and talk about making edits and saving
+1. Let's discuss how we can embed images into .rmd files:
+  - ```![Caption](file_path.png)```
+3. What transition matrix does Example 1 correspond to?
+3. What regular expression does Example 1 correspond to?
+
+## 5. Challenging Examples
+
+**Draw an FSA which corresponds to the following matrix (start state is q0):**
+
+```{r}
+delta <- matrix(rbind(c('q1','q0','q3','-'),c('q1','-','q2','-'),c('-','q2','-','-'),c('-','-','-','q2')), nrow = 4, dimnames = list(c("q0","q1","q2:","q3"),c("a","b","c","d")))
+print(delta)
+```
+
+**What Regular Expression corresponds to the FSA you made?**
+
+**Draw an FSA for each of the following regular-expressions:**
+
+1. /da+/
+1. /(da+)+/
+1. /(da+)(bda+)/
+1. /((da+)(bda+))|(da*)/

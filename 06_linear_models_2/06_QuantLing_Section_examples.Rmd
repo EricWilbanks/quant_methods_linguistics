@@ -1,0 +1,205 @@
+---
+title: "06_QuantLing_Section"
+author: "Eric Wilbanks"
+date: "2/28/2020 - 3/02/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{css echo=FALSE}
+.example{
+  background-color: rgba(30,206,124,.5);
+}
+```
+
+## 1. Goals for Section
+
+1. General questions?
+1. /str/ retraction data set
+1. Hypotheses and Exploratory Visualizations
+1. Interaction and Multiple Categorical Model
+1. Releveling and Coefficients
+
+## 2. Questions?
+	
+	
+## 3. str data background
+
+We're going to be looking at a dataset that is modeled after my MA thesis (since Ethics restrictions prevent us from looking at the real data.)
+
+We're investigating how the pronunciation of words/phrases that contain "str", like "street", "construction", and "this truck" are changing over time in Raleigh, N.C. 
+
+```
+How do you all pronounce these words? Do you hear any differences from your classmates?
+```
+```{r, class.source="example",include=TRUE}
+# Younger speakers in the US and elsewhere are starting to say [s] in <str> clusters more like "SH"
+
+# This involves a decrease in spectral energy, and a lowering of the Center of Gravity (COG) of the fricative spectrum
+```
+
+The data set that I've simulated assumes that we've interviewed 2,000 Raleigh natives who were born between 1940 and 2000. 
+
+We then measure the Center of Gravity (COG) of all of their [s] before [tr] clusters (lower = more like "sh", higher = more like "s"). 
+
+We also mark down whether they identified as male or female, and note that we haven't encountered any self-identified non-binary or trans folx in our sample. (Ask me about gender and fricatives outside of class; it's pretty complicated and interesting!).
+
+```
+Load and explore the dataset. 
+
+What are your suspicions about what the "position" variable could encode? Hint: it's linguistic.
+```
+
+```{r}
+str_data <- read.csv('str_data.csv',header=T)
+```
+
+```{r, class.source="example",include=TRUE}
+# position has three levels:
+levels(str_data$position)
+
+# initial = beginning of word ("street")
+# medial = word-internal ("construction")
+# final = across word-boundaries ("this truck")
+```
+
+## 4. str data hypotheses
+
+The first thing to do when you're working on your analysis is make your hypotheses.
+
+```
+1.) What predicted effect (if any) would birthyear have on COG? (remember, lower = more like SH, higher = more like S)
+
+2.) What predicted effect (if any) would gender have on COG?
+
+3.) What predicted effect (if any) would position have on COG?
+
+4.) Do you think any interactions would be motivated?
+```
+
+```{r, class.source="example",include=TRUE}
+# Since it seems like <str> is becoming more like SH over time, we'd predict that as birthyear increases, COG would decrease 
+
+# It looks like women have a higher COG than men.
+
+# Unclear what predictions we'd have about position a priori?
+
+# The increase might be quicker for women than men, motivating an interaction. Unclear if position should be involved in any interaction. 
+```
+
+## 5. str data visualization
+
+Now let's create the following plots:
+
+1. boxplot or density plot of cog by gender
+1. boxplot of density plot of cog by position
+1. scatter plot of birthyear (x) and cog (y) with a geom_smooth(method='lm')
+1. scatterplot of birthyear (x) and cog (y), separated out for gender and position, with a geom_smooth(method='lm')
+
+```
+Were our predictions borne out?
+```
+```{r, class.source="example",include=TRUE}
+library(ggplot2)
+ggplot(str_data, aes(gender,cog)) + geom_boxplot()
+ggplot(str_data, aes(position,cog)) + geom_boxplot()
+ggplot(str_data, aes(birthyear,cog)) + geom_point() + geom_smooth(method='lm')
+ggplot(str_data, aes(birthyear,cog,color=position)) + geom_point() + geom_smooth(method='lm') + facet_grid(~gender)
+
+# It looks like our predictions were borne out
+
+#it also appears that there's an effect of position, with medial position showing lower COG than other positions.
+```
+
+## 6. str data modeling
+
+With our predictions in hand, let's fit a linear model to the data and analyze the results. With your small groups:
+
+1. fit the following models
+1. compare model BIC (using the BIC() function); **which model is best?**
+
+```
+m1: dependent COG ~ birthyear and gender
+m2: dependent COG ~ interaction between birthyear and gender
+m3: dependent COG ~ position and interaction between birthyear and gender
+m4: dependent COG ~ three-way interaction
+```
+
+```{r, class.source="example",include=TRUE}
+library(lme4)
+
+m1 <- lm(cog ~ birthyear + gender, str_data)
+m2 <- lm(cog ~ birthyear * gender, str_data)
+m3 <- lm(cog ~ birthyear * gender + position, str_data)
+m4 <- lm(cog ~ birthyear * gender * position, str_data)
+
+BIC(m1,m2,m3,m4)
+
+# model 3 (without three-way interaction) is the best fitting because it has the lowest BIC. 
+```
+
+```
+What does each coefficient of the best-fitting model mean?
+```
+```{r, class.source="example",include=TRUE}
+summary(m3)
+
+
+## (Intercept) - 3.750e+04
+# When birthyear is 0, the speaker is a woman, and the token occurs word-finally, the COG will be 37,500.
+
+# This is essentially meaningless because birthyear in our sample can't be 0.
+
+
+## birthyear - -16.01
+# for each year increase for women, the COG decreases 16.
+
+## gendermale - -1.787e+04
+# when birthyear is 0, the intercept for men is 17,870 COG lower than women (their intercept is 19630).
+# again, this is meaningless since birthyear can't equal 0
+
+## positioninitial - 2.760
+# the mean for initial position is 2.8 COG higher than final position
+# this dif. is not significant
+
+## positionmedial - -2.956e+02
+# the mean for medial position is 295.6 COG lower than final position
+# this dif. is signficant
+
+## birthyear:gendermale 
+# To adjust the female slope of birthyear (-16 per year) for men, add 8.2 to it
+# men's slope of birthyear is -7.8
+```
+
+## 7. str data model re-leveling
+
+Looking at our best-fitting model, let's look at what happens to the coefficients (and t-values) for the `position` variable
+
+1. **Mark down the coefficients** for the default level comparisons of position.
+1. Using the relevel() function, mark down the coefficients for all comparisions for **the remaining reference levels** of position.
+1. **Create a diagram** (on paper/the board) that shows the relationship between comparison coefficients and reference levels.
+
+```{r, class.source='example', include=TRUE}
+# original and releveled models
+m3 <- lm(cog ~ birthyear * gender + position, str_data)
+m3b <- lm(cog~birthyear * gender + relevel(position,"initial"), str_data)
+m3c <- lm(cog~birthyear * gender + relevel(position,"medial"), str_data)
+
+# extract position coefficients and convert them into vectors of the right shape
+c_final_ref <- c(0,unname(m3$coefficients[4:5]))
+c_initial_ref <- c(unname(m3b$coefficients[4]),0,unname(m3b$coefficients[5]))
+c_medial_ref <- c(unname(m3c$coefficients[4:5]),0)
+
+# create matrix from vectors
+c_mat <- cbind(c_final_ref,c_initial_ref,c_medial_ref)
+
+# change matrix row/column names
+rownames(c_mat) <- c('final','initial','medial')
+colnames(c_mat) <- c('final_ref','initial_ref','medial_ref')
+
+c_mat
+```
+
+

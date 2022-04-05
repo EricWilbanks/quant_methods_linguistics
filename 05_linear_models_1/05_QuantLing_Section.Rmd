@@ -1,0 +1,75 @@
+---
+title: "05_QuantLing_Section"
+author: "Eric Wilbanks"
+date: "2/21/2020 - 2/24/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{css echo=FALSE}
+.example{
+  background-color: rgba(30,206,124,.5);
+}
+```
+
+## 1. Goals for Section
+  1. Reminder: HW Submission Format as RMarkdown
+  1. Reviewing Linear Models
+  1. Visualing Model Fit
+  1. Homework Workshop
+
+## 2. Linear Model Review
+Let's consider the `ratings` dataset from `languageR`, in which people rated the subjective size of different nouns.
+
+```{r}
+library(lme4)
+library(languageR)
+library(ggplot2)
+data(ratings)
+head(ratings)
+```
+
+
+```
+1. Are ratings of size significantly predicted by how familiar objects are and what class they are in? Fit a multiple linear model to answer this question.
+2. What type of variable (categorical or continuous) are each of these terms?
+3. How do we get the t-values in the column?
+4. What are the significant differences?
+5. What parts of this output do you have questions about?
+```
+
+```{r}
+ggplot(ratings, aes(meanFamiliarity,meanSizeRating,color=Class)) + geom_point() + geom_smooth(method='lm')
+```
+
+```
+1. Compare the plot above to the model output. What does our model intercept correspond to here?
+2. Compare the coefficients from the model output; how do they map onto the plot?
+```
+
+## 3. Visualizing Model Fit
+
+```
+When considering how well our model fits the data, what should we look at or test?
+```
+
+Let's plot the model from earlier and discuss whether it matches these criteria.
+```{r}
+#plot(modelName)
+```
+
+```{r}
+# we can also add the fitted values to the original data-frame to explore further in plots
+#ratings$fitted <- fitted(modelName)
+```
+
+```
+1. Create a new factor in the ratings df that is the residuals from the model.
+2. Create a ggplot which compares the fitted and actual values for meanSizeRatings (consider using `geom_abline(slope=1)` )
+3. Create a plot that compares the residuals between the two Classes. Is the model better at predicting one class than another?
+4. Create a plot that compares the residuals between different levels of Familiarity. Is the model better at predicting objects of certain levels of familiarity?
+```
+## 4. Homework Workshop
+

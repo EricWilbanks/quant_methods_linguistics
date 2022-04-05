@@ -1,0 +1,166 @@
+---
+title: "13_QuantLing_Section"
+author: "Eric Wilbanks"
+date: "5/01/2020 - 5/04/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{css echo=FALSE}
+.example{
+  background-color: rgba(30,206,124,.5);
+}
+```
+
+## 1. Goals for Section
+
+1. Logistics Reminder
+1. HW5 Overview
+1. N-Grams, Sequences and Sentences
+1. Laplace Smoothing
+
+## 2. Other Questions?
+
+
+## 3. End-of-Semester Logistics
+
+- Review in lecture this upcoming Tuesday
+- Regular OHs until the exam
+- Exam general guidelines are in Lec25 material, format similar to the midterm
+- If you can, please give your feedback on section evals! I'd appreciate it, especially to hear your thoughts about the transition to virtual section.
+
+## 4. HW5 Overview
+
+Let's look through HW5; what questions do you have? Some of them we'll get to during section examples.
+
+**Suggestion**: try to first build an FST that captures one tone (shifting to new tone unless it's the last tone in the phrase); then, see how you can expand it to all the tones.
+
+## 5. N-Gram Review
+
+### 5.1 Unigram sequences
+
+Let's consider the corpus of sentences below:
+
+1. Tacos aren't dogs.
+1. Aren't tacos dogs?
+1. Dogs ate green tacos.
+1. Green dogs are tacos.
+
+The corresponding unigram table is:
+
+tacos | aren't | dogs | ate | green | are 
+------|--------|------|-----|-------|-----
+ 4    | 2      | 4    | 1   | 2     | 1
+
+```
+Let's calculate the probability of the **sequence** green dogs using unigrams.
+Since we're using unigrams, we don't need to apply the chain rule or condition on previous word.
+
+p(green,dogs) = p(green) * p(dogs) = (2/14) * (4/14) = (2/49)
+
+1. What is p(aren't,dogs,tacos)?
+2. What is p(aren't,tacos,aren't)?
+```
+
+### 5.2 Bigram Sequences
+
+These unigrams aren't capturing the fact that some elements of the sequence are more likely after certain elements than other. For example, we don't expect `are` to follow `are`, but the unigram method gives this sequence a decent probability.
+
+The chain rule of probability allows us to represent the probability of a **sequence** of independent events as conditional probabilities:
+
+$p(x,y,z) = p(z|x,y) * p(x,y)$
+
+$p(x,y,z) = p(z|x,y) * p(y|x) * p(x)$
+
+
+```
+We can use this to calculate probabilities of sequences of words using n-grams. 
+
+What is the missing expanded form of p(I,love)?
+```
+
+$p(I,love,dogs) = p(dogs|I,love) * p(I,love)$
+
+$p(I,love,dogs) = p(dogs|I,love) *$ ?
+
+```
+We also make the simplifying Markov Assumption that we only need to condition on the previous word (making these bigrams). 
+
+**What changed below?**
+```
+
+$p(I,love,dogs) = p(dogs|love) *$ ?
+
+
+```
+Use the corpus above to calculate bigram probability of the following sequences:
+
+1. p(green tacos aren't dogs)
+2. p(green dogs are)
+3. p(tacos ate green dogs)
+```
+
+### 5.3 Bigram Sentences
+
+Say we want to model probabilities of hearing any random sequence of words, but want to model the probabilities of a specific unit: **the sentence**.
+
+To do this, we'll introduce \<s\> and \<\\s\> as symbols to represent the start and end of the sentence. We can use these symbols and the chain rule to get probabilities of whole sentence units.
+
+**bigram sequence** : p(Birds I guess.) = p(birds) * p(I|birds) * p(guess|I)
+
+**bigram sentence** : p(Birds I guess.) = p(\<s\>) * p(birds|\<s\>) * p(I|birds) * p(guess|I) * p(\<\\s\>|guess)
+
+```
+Key Point!
+
+Since we're always evaluating these sentences in the "beginning of sentence context",
+
+we'll assume p(<s>) = 1
+
+```
+
+```
+Create a bigram table using the following bigram counts
+(y axis is word 1, x axis is word 2).
+```
+
+1. \<s\> dogs: 1
+1. dogs are: 1
+1. tacos dogs: 1
+1. are tacos: 1
+1. aren't dogs: 1
+1. ate green: 1
+1. green dogs: 1
+1. \<s\> tacos: 1
+1. aren't tacos: 1
+1. tacos aren't: 1
+1. \<s\> aren't: 1
+1. dogs ate: 1
+1. tacos \<\/s\>: 2
+1. dogs \<\/s\>: 2
+1. \<s\> green: 1
+1. green tacos: 1
+
+```
+Using your bigram table, calculate the probability of the following sentences:
+
+1. p(green tacos aren't dogs)
+2. p(green dogs are)
+3. p(tacos ate green dogs)
+```
+
+## 6. Laplace Smoothing
+
+We're running into issues since many of our bigrams are unobserved (we have a small corpus!). 
+
+Let's address this in a brute force way, just add 1 count to all cells (Laplace Smoothing).
+
+```
+Using your laplace-smoothed bigram table, calculate the probability of the following sentences:
+
+1. p(green tacos aren't dogs)
+2. p(green dogs are)
+3. p(tacos ate green dogs)
+```

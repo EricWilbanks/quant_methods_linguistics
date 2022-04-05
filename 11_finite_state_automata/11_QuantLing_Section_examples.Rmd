@@ -1,0 +1,158 @@
+---
+title: "11_QuantLing_Section"
+author: "Eric Wilbanks"
+date: "4/17/2020 - 4/20/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{css echo=FALSE}
+.example{
+  background-color: rgba(30,206,124,.5);
+}
+```
+
+## 1. Goals for Section
+
+1. FSA review and exercises
+1. FST review and exercises
+
+## 2. Any other Questions?
+
+## 3. Finite State Automata (FSA)
+### 3.1 FSA Basics
+
+**Finite State Automata (FSAs)** 
+
+FSAs are mathematical machines/models of computation that **transition from one state to another in response to an input**.
+
+FSAs are characterized by:
+
+1. finite set of states ($Q$)
+1. set of transition values/symbol set ($\Sigma$)
+1. start state
+1. final state(s)
+1. transition function/matrix ($\delta(q,i)$)
+
+
+![Example FSA \#1](./fsa_pngs/01.png)
+
+```
+For the above FSA, what are the parameters we outlined as features of FSAs? ($Q$, $\Sigma$, etc.)
+```
+
+```{r, class.source='example'}
+# Q: {q0, q1, q2, q3}
+# Sigma: {a, b, c, d}
+# start: q0
+# end: {q2, q3}
+# transition matrix
+delta <- matrix(rbind(c('q1','-','-','-'),c('-','q1','q2','q3'),c('-','-','-','-'),c('-','-','-','-')), nrow = 4, dimnames = list(c("q0","q1","q2","q3"),c("a","b","c","d")))
+print(delta)
+```
+
+
+FSAs can be either **deterministic** or **non-deterministic**:
+
+- *deterministic*: has a unique transition for all state-symbol combinations (no decision point $\rightarrow$ deterministic)
+- *non-deterministic*: any non-unique transitions for any state-character combination
+
+```
+1) Is FSA #1 deterministic or non-deterministic? 
+2) What is one edit we could make to change it to the other option?
+```
+
+```{r, class.source='example'}
+##############
+# 1) FSA is deterministic: each state only has one unique path for any symbol from that state;
+# 2) We could add another path with a repeated symbol out of a state; for example, adding a transition from q1 to q2 that is "b"; then there would be two possible choices for "b" when you're in q1, and it's not 100% determined by the state-symbol you're in. 
+##############
+```
+
+### 3.2 Acceptor FSAs
+
+One core application of FSAs is matching input strings to some pattern (like regular expressions). 
+If an FSA can take an input, process its sub-parts, and then successfully reach a final state, the input is **accepted**. Otherwise, it is rejected.
+
+```
+1) What types of strings can FSA #1 match/accept?
+2) What would a corresponding regular expression be?
+3) Is it deterministic or non-deterministic?
+```
+
+```{r, class.source='example'}
+##############
+# 1) FSA 1 could match any strings that start with a, have 0 or more b's, and then end with either c or d.
+# 2) /ab*(c|d)/
+##############
+```
+
+![Example FSA \#2](./fsa_pngs/02.png)
+```
+1) What types of strings can FSA #2 match/accept?
+2) What would a corresponding regular expression be?
+3) Is it deterministic or non-deterministic?
+4) How can we edit this FSA to only accept English words?
+5) Would the resulting FSA be deterministic or non-deterministic?
+```
+
+```{r, class.source='example'}
+##############
+# 1) there, theyre, theire, theiyre, theiire, theiiire, ....
+# 2) /thei*y?re/
+# 3) Deterministic; all state/symbol transitions are unique
+# 4) Remove the q3-q3 'i' loop, instead, have a new state which bypasses the top paths (see image below)
+# 5) still deterministic
+##############
+```
+
+![Updated FSA \#2](./fsa_pngs/02_up.png)
+
+
+## 4. Finite State Transducers (FST)
+
+Instead of moving through symbols in an input and checking to see if an FSA can accept the input, what if we could move through symbols in an input **and** build up an ouput based off of this?
+
+Consider the following Finite State Transducer (FST):
+
+![Example FST\#1](./fsa_pngs/03.png)
+
+### input = "ta"
+
+| current state | input symbol | output |
+| ------------- | ------------ | ------ |
+| q0            | t            | T      |
+| q1            | a            | Te     |
+| q2            |              | Te     |
+
+### input = "tooa"
+
+| current state | input symbol | output |
+| ------------- | ------------ | ------ |
+| q0            | t            | T      |
+| q1            | o            | Ti     |
+| q1            | o            | Tii    |
+| q1            | a            | Tiie   |
+| q2            |              | Tiie   |
+
+
+### input = "Toa"
+
+?
+
+```{r, class.source='example'}
+#This would crash; there's no path from q0 that an input 'T' can take; only possible path is if input starts with 't'
+```
+
+### input = "tta"
+
+?
+
+```{r, class.source='example'}
+#This would also crash; we can move from q0 to q1 with the first 't', but there's no path from q1 if the input is 't'.
+```
+
+
+

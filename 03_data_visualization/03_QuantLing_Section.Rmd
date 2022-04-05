@@ -1,0 +1,163 @@
+---
+title: "03_QuantLing_Section"
+author: "Eric Wilbanks"
+date: "2/07/2020 - 2/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{css echo=FALSE}
+.example{
+  background-color: rgba(30,206,124,.5);
+}
+```
+## 1. Goals for Section
+
+- remaining data frame points
+- loading/saving data
+- visualization with ggplot2
+
+## 2. Data Frame Errata
+
+Another useful operator is the `%in%` operator. This can be more efficient that many chained `or` statements.
+
+```{r}
+library(languageR)
+data(sizeRatings)
+fruits <- sizeRatings[sizeRatings$Word %in% c('cherry','lemon','pear','blackberry'),]
+```
+
+We can also create new factors! In the code below, we add a new factor which has a value of `familiar` if `sizeRatings$MeanFamiliarity` is greater than 0.7, and `unfamiliar` if not. 
+
+```{r}
+sizeRatings$binary_MF <- ifelse(sizeRatings$MeanFamiliarity > 0.7, 'familiar', 'unfamiliar')
+```
+
+```
+What differences are there between $Language and $binary_MF when you call str(sizeRatings) ?
+```
+
+## 3. Loading and saving dataframes
+
+A common format for data is `.csv`, ("comma separated values"). 
+
+```
+Download the `PresuppositionType_data.csv` file from bCourses. 
+
+What does this file look like if you open it in a text editor?
+```
+
+### 3.1 Reading in Data Frame
+```{r, eval = FALSE}
+presup <- read.csv(file.choose())
+```
+
+You can also specify the path to the file if you have that information. This is always specified relative to your working path.
+
+```
+What is a working path?
+```
+
+```{r}
+presup <- read.csv('PresuppositionType_data.csv')
+```
+
+You can query your current working directory if you're not sure, and can set it to a specific directory. You can also permanently change your working directory in RStudio using **Tools > Global Options**
+
+```{r}
+getwd()
+#setwd('/home/eric/TotallyRealFolder')
+```
+
+### 3.2 Saving a data frame (as csv)
+```{r, eval = FALSE}
+sub <- presup[1:20,]
+write.csv(sub, file = 'new_df.csv',row.names=F)
+write.csv(sub, file = 'new_df_test.csv', row.names=T) # default option for row.names; what's changed?
+```
+
+## 4. Visualization with ggplot2
+There are various ways to make visualizations in R. We'll be using a powerful and well documented package, `ggplot2`.
+
+```{r}
+# install the package (if you haven't ever done this)
+#install.packages('ggplot2')
+
+# load the packages we'll need
+library(ggplot2)
+
+# load the Dutch ge- data
+data(durationsGe)
+```
+
+```{r}
+# simple scatter-plot
+ggplot(durationsGe, aes(DurationOfPrefix,SpeechRate)) + geom_point()
+```
+
+The first part of the command `ggplot(durationsGe, aes(DurationOfPrefix,SpeechRate))` establishes the data that's being used and which factors are mapped to the x and y dimensions.
+
+The second part `+ geom_point()` adds a geom to the graph. You can have multiple geoms that layer on the same plot. 
+
+```
+Trying adding geom_smooth(method='lm') to the plot you just made.
+```
+
+You can change the labels of various elements by creating a label layer, using `labs()` 
+
+```{r}
+ggplot(durationsGe, aes(DurationOfPrefix,SpeechRate)) + geom_point() + labs(x='Duration of Ge- prefix', y='Syllables per Second', title='Duration of Ge- by Speech Rate')
+```
+
+Let's try a basic density plot
+
+```{r}
+ggplot(durationsGe, aes(DurationOfPrefix)) + geom_density()
+```
+
+We can also use other factors that aren't x or y dimensions to break down the data:
+
+```{r}
+ggplot(durationsGe, aes(DurationOfPrefix, color=Sex)) + geom_density()
+```
+
+```
+What happens when you replace `color` with `lty`?, `fill`?
+```
+
+```{r}
+# basic box-plot
+ggplot(durationsGe, aes(Sex,DurationOfPrefix, fill=Sex)) + geom_boxplot(alpha=0.5)
+```
+
+```
+What is the third box-plot?
+
+Find which row(s) of the data-frame are responsible for this third plot. Create a sub-set of the data-frame that avoids this issue, and recreate the plot.
+```
+
+```{r}
+# basic histogram
+ggplot(durationsGe, aes(YearOfBirth,fill=Sex)) + geom_histogram()
+```
+
+```
+What does this plot correspond to?
+
+What happens when we add facet_grid(~Sex) to the plot? What if we add facet_grid(Sex~.) instead?
+
+Create an equivalent density plot and consider how it compares to the histogram.
+```
+
+## 4. Plot Extensions
+
+```
+Let's begin by creating the following plots using the durationsGe dataframe:
+
+1. A scatterplot which shows the relationship between year of birth and speech rate, with a facet by speaker sex.
+2. A boxplot of Ge- duration, with an x-axis and fill of NumberSegmentsOnset and custom axis and title labels.
+3. A scatterplot of Ge- duration by log() transformed Ge-duration
+4. Create a new factor of binary Frequency. ('low' if durationsGe$Frequency is less than the mean of this factor, 'high' if else.). Using this new factor, create a scatterplot of speech rate by ge- duration, faceted by binary frequency. 
+```

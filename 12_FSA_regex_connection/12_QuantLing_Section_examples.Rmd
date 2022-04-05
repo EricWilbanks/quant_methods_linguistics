@@ -1,0 +1,109 @@
+---
+title: "12_QuantLing_Section"
+author: "Eric Wilbanks"
+date: "4/24/2020 - 4/27/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{css echo=FALSE}
+.example{
+  background-color: rgba(30,206,124,.5);
+}
+```
+
+## 1. Goals for Section
+
+1. HW4 Overview
+1. Compiling Images in RMD
+1. FSA and Regex Practice 
+
+## 2. Other Questions?
+
+## 3. HW4 Overview
+
+Let's look through HW4; what questions do you have? Some of them we'll get to during section examples.
+
+## 4. draw.io
+
+You can create your FSAs however you want (even on paper and take a picture of it!); I'd suggest using draw.io.
+
+**Let's look at an example**
+
+![Example 1](./fsa_pngs/example1.png)
+
+
+1. Let's open the draw.io file and talk about making edits and saving
+1. Let's discuss how we can embed images into .rmd files:
+  - ```![Caption](file_path.png)```
+  
+```{r, class.source='example'}
+# see the 12_QuantLing_Section.mp4 video for the explanation of using draw.io and embedding images int .rmd files
+# time: 9:20-12:24
+
+# you *don't* need to use rmd for this hw or use draw.io, but make sure you do save your images in your assignment!
+```
+
+3. What transition matrix does Example 1 correspond to?
+
+```{r, class.source='example'}
+delta <- matrix(rbind(c('q1','q0','-','-','-'),c('-','-','q2','-','-'),c('-','-','-','q2','q3'),c('-','-','q0','-','-')), nrow = 4, dimnames = list(c("q0","q1","q2:","q3"),c("a","b","c","d","e")))
+print(delta)
+```
+
+4. What regular expression does Example 1 correspond to?
+
+```{r, class.source='example'}
+# /b*acd*(ecb*acd*)*/
+```
+
+## 5. Challenging Examples
+
+**Draw an FSA which corresponds to the following matrix (start state is q0):**
+
+```{r}
+delta <- matrix(rbind(c('q1','q0','q3','-'),c('q1','-','q2','-'),c('-','q2','-','-'),c('-','-','-','q2')), nrow = 4, dimnames = list(c("q0","q1","q2:","q3"),c("a","b","c","d")))
+print(delta)
+```
+
+![5.1](./fsa_pngs/5_1.png)
+
+***
+
+**What Regular Expression corresponds to the FSA you made?**
+
+```{r, class.source='example'}
+# /b*(a+c|cd)b*/
+```
+
+***
+ 
+**Draw an FSA for each of the following regular-expressions:**
+
+2. /da+/
+
+![5.2](./fsa_pngs/5_2.png)
+
+
+***
+
+3. /(da+)+/
+
+![5.3](./fsa_pngs/5_3.png)
+
+***
+
+4. /(da+)(bda+)/
+
+![5.4](./fsa_pngs/5_4.png)
+
+***
+
+
+5. /((da+)(bda+))|(da*)/
+
+![5.5](./fsa_pngs/5_5.png)
+
+***

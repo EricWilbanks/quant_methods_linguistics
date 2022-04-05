@@ -1,0 +1,289 @@
+---
+title: "08_QuantLing_Section"
+author: "Eric Wilbanks"
+date: "3/13/2020 - 3/16/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{css echo=FALSE}
+.example{
+  background-color: rgba(30,206,124,.5);
+}
+```
+
+## 1. Goals for Section
+
+1. Midterm-Evals Summary
+1. Linear Models - Requested Topics
+1. Logistic Regression - Overview
+
+## 2. Midterm-Evals Summary
+
+Thanks for filling out the evals! Here's a summary of the responses to some key points:
+
+```{r, echo = FALSE}
+evals <- read.csv('/home/eric/Documents/Teaching/s20_LING160/logistics/midterm_evals_subset.csv')
+library(ggplot2)
+ggplot(evals, aes(group)) + geom_density() + scale_x_continuous(name = "I find group discussion of problems helpful", limits=c(1,5), labels=c('Not at all','','','','Extremely'))
+
+ggplot(evals, aes(Eric)) + geom_density() + scale_x_continuous(name = "I find Eric's discussion of problems helpful", limits=c(1,5), labels=c('Not at all','','','','Extremely'))
+```
+
+*Looking at your preferences, I'll still keep group discussions in, but try to incorporate a little bit more of me summarizing key concepts*
+
+```{r, echo = FALSE}
+ggplot(evals, aes(prepared)) + geom_density() + scale_x_continuous(name = "Because of section I feel more prepared for HWs/Exams", limits=c(1,5), labels=c('Not At All','','','','Extremely'))
+
+ggplot(evals, aes(pace)) + geom_density() + scale_x_continuous(name = "I find the pace of discussion to be", limits=c(1,5), labels=c('Too Slow','','','','Too Fast'))
+```
+
+*I'm glad you all feel on average more prepared! For the pace of section, I'll try slowing down a bit [though not too much! the median is about "just right"]
+
+## 3. Linear Regression Requested Topics
+
+Some of the most-requested topics for linear modeling were:
+
+1. Multi-level Categorical Predictors
+1. Interactions
+1. Comparing Model Fit
+
+### 3a. Chick Weight Measurements
+Let's get some more practice with these types of models using a dataset already in R about how the weight of Chicks changes over time and on different diets.
+
+```{r}
+library(ggplot2)
+library(lme4)
+
+data(ChickWeight)
+summary(ChickWeight)
+
+ggplot(ChickWeight, aes(Time,weight)) + geom_point() + labs(title='Growth of Chicks over Time')
+```
+
+
+
+Let's build the simplest linear model and work our way up to a full understanding.
+
+```{r}
+m1 <- lm(weight ~ Time, ChickWeight)
+summary(m1)
+
+# directly access the coefficients
+m1$coefficients
+
+# save them to separate variables
+m1_int <- m1$coefficients[1]
+m1_slope_time <- m1$coefficients[2]
+```
+
+We can then directly use these coefficients to plot the linear model we've fit on top of the raw data.
+
+```{r}
+ggplot(ChickWeight, aes(Time,weight)) + geom_point() + geom_abline(intercept = m1_int, slope = m1_slope_time, size=2) + labs(title="Raw Data and Model 1 Prediction (Line)")
+```
+
+### 3b. Multi-level Categorical Predictors
+
+We saw that we have a clear positive effect of Time on weight (Chicks gain weight as they grow), but we want to test what possible effects on weight each type of diet has. Recall that the Diet predictor is categorical, with 4 levels.
+
+
+```{r}
+summary(ChickWeight$Diet)
+
+ggplot(ChickWeight, aes(Diet, weight)) + geom_boxplot()
+
+ggplot(ChickWeight, aes(Time, weight, color=Diet)) + geom_point() + geom_smooth(method='lm') + labs(title='Growth of Chicks over Time by Diet')
+```
+
+Let's create m2, which has this additional predictor.
+
+```{r}
+m2 <- lm(weight ~ Time + Diet, ChickWeight)
+summary(m2)
+```
+
+Recall that **the interpretation of the Intercept is when all predictors are set to 0 or their reference level**. The reference level for Diet is "1", and we only have estimates for the differences for each other level of Diet to level "1".
+
+Looking at the model coefficients, we have linear equations for 4 different lines: one for each Diet. Their exact values are:
+
+1. Diet_1: (`r m2$coefficients[1]`) + (Time * `r m2$coefficients[2]`) 
+1. Diet_2: (`r m2$coefficients[1]` + `r m2$coefficients[3]`) + (Time * `r m2$coefficients[2]`)
+1. Diet_3: (`r m2$coefficients[1]` + `r m2$coefficients[4]`) + (Time * `r m2$coefficients[2]`)
+1. Diet_4: (`r m2$coefficients[1]` + `r m2$coefficients[5]`) + (Time * `r m2$coefficients[2]`)
+
+We can plot these four lines over the raw data. Pay special attention to comparing this plot with the plot of m1's line.
+
+```{r}
+# estimate of time coefficient
+time_slope <- m2$coefficients[2]
+
+# adjustments to intercept by coefficients for categorical variable
+d1_int <- m2$coefficients[1]
+d2_int <- d1_int + m2$coefficients[3]
+d3_int <- d1_int + m2$coefficients[4]
+d4_int <- d1_int + m2$coefficients[5]
+
+cat(c(d1_int,d2_int,d3_int,d4_int))
+# plot each line over raw data
+ggplot(ChickWeight, aes(Time,weight)) + geom_point() + labs(title="Raw Data and Model 2 Predictions (Lines)") + 
+    geom_abline(intercept = d1_int, slope = time_slope, color='red', size=2) +
+    geom_abline(intercept = d2_int, slope = time_slope, color='blue', size=2) +
+    geom_abline(intercept = d3_int, slope = time_slope, color='green', size=2) +
+    geom_abline(intercept = d4_int, slope = time_slope, color='purple', size=2)
+```
+
+We can notice that the intercepts have been adjusted for each diet (this is what the categorical estimate **is**, an adjustment of the intercept from the reference level).
+
+One issue, though, is that our 4 lines are making incorrect predictions for **Time = 0**. That is, we expect chicks to start at the same weight at Time = 0, but to have a slower or faster growth rate on different diets.
+
+**We want the slope of the Time line to be able to be different for different Diets**.
+
+**This is an interaction term**
+
+### 3c. Interactions
+
+We want our estimated lines to be able to have different slopes for Time, depending on which Diet the chick was on. Let's build a model that has this interaction term.
+
+```{r}
+m3 <- lm(weight ~ Time * Diet, ChickWeight)
+summary(m3)
+```
+
+**Notice a few changes**: 
+
+1. Our intercept term is ~30. This is close to the intercept from m1
+1. Relatedly, the main estimates for Diet are no **longer** significantly different from 
+
+**This is good!** We expected all of the Diets to have the same value of Weight when Time = 0 (the intercept), because they hadn't started eating yet! We see no significant adjustment to the intercepts of each Diet (when we allow for adjustments to the slope).
+
+**Also**,
+
+1. The time coefficient is now a bit lower than it has been previously (m1 - 8.8, m2 - 8.75, m3 - 6.8).
+1. This is because this is now the estimate for the slope of Time when Diet is at its reference level.
+1. Each Interaction Term (Time:Diet2, Time:Diet3, and Time:Diet4) are **adjustments to the slope of Time for Diet 1**
+
+**The formulas for each line are as follows:**
+
+1. Diet_1: (`r m3$coefficients[1]`) + (Time * (`r m3$coefficients[2]`)) 
+1. Diet_2: (`r m3$coefficients[1]` + `r m3$coefficients[3]`) + (Time * (`r m3$coefficients[2]` + `r m3$coefficients[6]`))
+1. Diet_3: (`r m3$coefficients[1]` + `r m3$coefficients[4]`) + (Time * (`r m3$coefficients[2]` + `r m3$coefficients[7]`))
+1. Diet_4: (`r m3$coefficients[1]` + `r m3$coefficients[5]`) + (Time * (`r m3$coefficients[2]` + `r m3$coefficients[8]`))
+
+```{r}
+# estimate of time coefficient
+d1_slope <- m3$coefficients[2]
+d2_slope <- d1_slope + m3$coefficients[6]
+d3_slope <- d1_slope + m3$coefficients[7]
+d4_slope <- d1_slope + m3$coefficients[8]
+
+# adjustments to intercept by coefficients for categorical variable
+d1_int <- m3$coefficients[1]
+d2_int <- d1_int + m3$coefficients[3]
+d3_int <- d1_int + m3$coefficients[4]
+d4_int <- d1_int + m3$coefficients[5]
+
+# plot each line over raw data
+ggplot(ChickWeight, aes(Time,weight)) + geom_point() + labs(title="Raw Data and Model 3 Predictions (Lines)") + 
+    geom_abline(intercept = d1_int, slope = d1_slope, color='red', size=2) +
+    geom_abline(intercept = d2_int, slope = d2_slope, color='blue', size=2) +
+    geom_abline(intercept = d3_int, slope = d3_slope, color='green', size=2) +
+    geom_abline(intercept = d4_int, slope = d4_slope, color='purple', size=2)
+```
+
+### 3d. Comparing Model Fit
+
+One way to compare model fits is with the F-test (see lec10 for more details). The null-hypothesis of this test is that adding additional predictors **does not improve model fit**. 
+
+```{r}
+anova(m1,m2)
+anova(m2,m3)
+```
+
+In comparing m1 and m2, we can reject the null hypothesis that model fit wasn't improved, and choose m2 as the better model.
+
+The same outcome happens comparing m2 and m3, so we choose m3 as our best model.
+
+```{r}
+AIC(m1,m2,m3)
+
+BIC(m1,m2,m3)
+
+```
+
+Unlike the F-test, AIC and BIC can be used on non-nested models. For AIC and BIC, the best model has the lowest value. In this case, both Information Criteria agree: **m3 is the best model**.
+
+## 4. Logistic Regression
+
+### 4a. Brief Overview
+
+**Reminder** from Prof. Zymet:
+
+"for logistic regression focus on what the model is generally supposed to do (i.e., predict binary outcomes), model output interpretation, and generating predictions. You won't need to memorize the math of the logistic regression model. The review questions in lecture 14 are perfect for this."
+
+**Goal**: 
+
+- model binary outcomes (instead of continuous, like linear)
+
+**How we get there (High-Level)**:
+
+1. map probabilty of binary outcomes into log-odds ratio (logit function)
+1. take inverse-logit to convert log-odds into probabilities
+
+a. $logit(P(Y = 1)) = \beta_0 + \beta_1 *X_1$
+b. $P(Y=1) = invlogit(\beta_0 + \beta_1 *X_1) = \frac{1}{1 + e^{-(\beta_0 + \beta_1*X)}}$
+
+**Logistic Model Output**:
+
+1. The estimates for logistic models are in logit space (log-odds ratio)
+1. To convert them into probabilities, use the inverse-logit function (manually or using the `invlogit()` function from the `arm` package)
+
+### 4b. Warlpiri Case
+
+Let's look at data from Warlpiri, a language of Northern Australia. The dependent variable is `warlpiri$CaseMarking` : a binary variable of either "ergative" or "other". For non-linguists, this is basically a different form of the noun depending on its role in the sentence structure.
+
+The predictor variables we'll be investigating are `warlpiri$AgeGroup` (if the speaker was an adult or a child) and `warlpiri$AnimacyOfSubject` (whether the noun in question was an animate (living) creature or an inanimate object).
+
+```{r}
+library(arm)
+library(languageR)
+data(warlpiri)
+
+w1 <- glm(CaseMarking ~ AgeGroup + AnimacyOfSubject, family='binomial', warlpiri)
+summary(w1)
+```
+
+The interpretation of coefficient estimates is similar to linear models, but they are **changes to logit space (log-odds)** not just linear increases in y.
+
+Here are the calculations of log-odds for each combination of Age and SubjectAnimacy:
+
+1. Adult/Animate = (`r w1$coefficients[1]`)
+1. Adult/Inanimate = (`r w1$coefficients[1]`) + (`r w1$coefficients[3]`) = `r w1$coefficients[1] + w1$coefficients[3]`
+1. Child/Animate = (`r w1$coefficients[1]`) + (`r w1$coefficients[2]`) = `r w1$coefficients[1] + w1$coefficients[2]`
+1. Child/Inanimate = (`r w1$coefficients[1]`) + (`r w1$coefficients[2]`) + (`r w1$coefficients[3]`) = `r w1$coefficients[1] + w1$coefficients[2] + w1$coefficients[3]`
+
+And their calculations in probability space, using the `invlogit()` function:
+
+```{r}
+# Adult Animate Log Odds
+aa_lo = w1$coefficients[1]
+# Convert to Probability of "other Case" using inverse-logit
+invlogit(aa_lo)
+
+# Adult Inanimate Log Odds
+ai_lo = w1$coefficients[1] + w1$coefficients[3]
+# Convert to Probability of "other Case" using inverse-logit
+invlogit(ai_lo)
+
+# Child Animate Log Odds
+ca_lo = w1$coefficients[1] + w1$coefficients[2]
+# Convert to Probability of "other Case" using inverse-logit
+invlogit(ca_lo)
+
+# Child Inanimate Log Odds
+ci_lo = w1$coefficients[1] + w1$coefficients[2] + w1$coefficients[3]
+# Convert to Probability of "other Case" using inverse-logit
+invlogit(ci_lo)
+```

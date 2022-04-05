@@ -1,0 +1,188 @@
+---
+title: "10_QuantLing_Section"
+author: "Eric Wilbanks"
+date: "4/10/2020 - 4/13/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{css echo=FALSE}
+.example{
+  background-color: rgba(30,206,124,.5);
+}
+```
+
+## 1. Goals for Section
+
+1. Regular Expression Review
+1. Regular Expressions in R
+1. Capture Groups and Regex Search and Replace
+
+## 2. Regex Review
+
+### 2.1 Special Characters
+
+**Quantifiers**
+
+1. a* (0 or more of previous character/group, in this case `a`)
+1. a+ (1 or more of previous character/group, in this case `a`)
+1. a? (0 or 1 of previous character/group, in this case `a`)
+1. a\{n\} (n occurences of previous character/group, in this case `a`)
+1. a\{n,\} (n or more occurences of previous character/group, in this case `a`)
+1. a\{m,n\} (between m to n occurences (inclusive) of previous character/group, in this case `a`)
+
+**Position Within String: "Anchors"**
+
+1. ^ (start of string)
+1. $ (end of string)
+1. \\b (word boundary)
+1. \\n (end of line character)
+1. \\r (carriage return character)
+
+**Grouping**
+
+1. (a|b|c) (any one character that is a, b, or c; parentheses are **capture groups** [more later])
+1. [abc] (any one character that is a, b, or c; brackets are **character classes**)
+1. [^abc] (any one character that isn't a, b, or c)
+
+
+**Common Symbols**
+
+1. . (any single character, including space!)
+1. \\ (escape character)
+    1. \\$ (just literal dollar sign)
+    1. \\. (just literal period)
+    
+### 2.2 Regex Testers
+
+A great resource for learning is using online regex compilers/testers, like https://regex101.com/. 
+
+Different programming languages may have slightly different flavors or resolutions for more complicated regular expressions, but they should all be the same for the common characters we're using.
+
+Let's try out the following examples as a group:
+
+1. https://regex101.com/r/DiYV4x/3
+1. https://regex101.com/r/wFipxo/1
+1. https://regex101.com/r/eeHtOL/1
+
+### 2.3 Regex in R
+
+```{r}
+# base function for doing pattern testing is grep()
+# syntax is: grep('pattern', 'test vector/strings')
+
+################
+# default output is which string/element matched
+################
+grep('^a', 'angel')
+
+################
+# here, strings 1 and 4 match the pattern
+################
+grep('^a', c('alphabet','cat','Animal','applies'))
+
+################
+# set value = T to get value, not index of matches
+################
+grep('^a', c('alphabet','cat','Animal','applies'), value = T)
+```
+
+```{r, eval=F}
+################
+# On your own, come up with regular expressions that will match the correct elements
+################
+
+################
+# define pattern
+r = ''
+  
+# match these
+grep(r, c('Tarah','tarah','Tara','tara','hey tara'))
+
+# don't match these
+grep(r, c('Haphtarahs','tarantula','xtara'))
+################
+```
+
+## 3. Capture Groups and Regex Search and Replace
+
+One of the most powerful uses of regular expressions is Search and Replace.
+
+Imagine if you wanted to find all instances of days of the week in a corpus and replace them with capitalized versions of themselves.
+
+1. monday $\rightarrow$ MONDAY
+1. Monday $\rightarrow$ MONDAY
+2. Friday $\rightarrow$ FRIDAY
+
+You could do a bunch of search and replaces manually, but this would be exhausting and error-prone. Instead, let's rely on the power of regular expressions to be more efficient.
+
+### 3.1 Capture Groups
+
+So far, we've just been asking you all to specify what lines or strings contain a pattern we want. But lines also contain material besides our pattern and match.
+
+```{r}
+# what part of the string matches the pattern?
+grep('[4-9]+Hz',c('a total of 45Hz change'), value = T)
+
+# let's explicitly pull out the matching parts using the following new functions:
+x <- 'a total of 45Hz change'
+regmatches(x, regexpr('[4-9]+Hz', x))
+```
+
+But what if I don't care about the Hz marks at all? I need them in my pattern to avoid getting any old numbers, but I want to separate out just the numbers. 
+
+We can use the `sub` function and capture groups to accomplish this!
+
+```{r}
+sub('([4-9]+)Hz', '\\1', x)
+```
+
+```
+1. How is the regex pattern in the sub() case different from the pattern in the two previous cases?
+2. What do you think '\\1' corresponds to?
+```
+
+```{r, eval=F}
+##############
+# What will this output be?
+##############
+sub('([4-9]+)(Hz)', '\\2', x)
+```
+
+```{r, eval=F}
+##############
+# What will this output be?
+##############
+sub('([4-9]+)(Hz)', '\\2\\1\\1', x)
+```
+
+```{r}
+##############
+# our replacement doesn't just have to contain references to capture groups
+# we could do anything!
+##############
+sub('([4-9]+)(Hz)', 'about 3 avocados are \\1(ish) \\2 tall without any', x)
+```
+
+### 3.2 Extra Practice - Corpus Regex
+
+The `moby` object is a vector where each element is a word from the novel Moby Dick. 
+
+```{r, eval=F}
+library(languageR)
+data(moby)
+
+# First, what does this regex do?
+matches <- grep('[^ ]day$', moby, value=T)
+matches
+
+# Second, find a way to replace all of the "day" substrings in `matches` with "DAY"
+sub('','', matches)
+
+# Finally, find a regular expression that will only match days of the week in `matches`, and exclude all of the others
+
+matches2 <- grep('', matches, value =T)
+matches2
+```

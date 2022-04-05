@@ -1,0 +1,133 @@
+---
+title: "05_QuantLing_Section"
+author: "Eric Wilbanks"
+date: "2/21/2020 - 2/24/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{css echo=FALSE}
+.example{
+  background-color: rgba(30,206,124,.5);
+}
+```
+
+## 1. Goals for Section
+  1. Reminder: HW Submission Format as RMarkdown
+  1. Reviewing Linear Models
+  1. Visualing Model Fit
+  1. Homework Workshop
+
+## 2. Linear Model Review
+Let's consider the `ratings` dataset from `languageR`, in which people rated the subjective size of different nouns.
+
+```{r}
+library(lme4)
+library(languageR)
+library(ggplot2)
+data(ratings)
+head(ratings)
+```
+
+
+```
+1. Are ratings of size significantly predicted by how familiar objects are and what class they are in? Fit a multiple linear model to answer this question.
+2. What type of variable (categorical or continuous) are each of these terms?
+3. How do we get the t-values in the column?
+4. What are the significant differences?
+5. What parts of this output do you have questions about?
+```
+
+```{r class.source="example"}
+m1 <- lm(meanSizeRating ~ meanFamiliarity + Class, ratings)
+summary(m1)
+
+# The "Call:" section provides information about the model function call; what data was used, what variables, etc.
+
+# The "Residuals:" section provides information on the distribution of the residuals (difference between model predicted and observed values).
+
+# The "Coefficients:" section is the heart of the model, it includes the estimate for the parameters of the linear model we've fit.
+
+# Recall that the formula for a linear model is as follows: y_i = B_0 + B_1*X_i_1 + B_2*X_i_2
+
+# The B_O term is the intercept, the value when all of the predictors are held at 0 (continuous variables like `meanFamiliarity`) or at their reference level (categorical variables like `Class`);
+
+# So, the Intercept estimate is 3.03608, which we can interpret as the value of meanSizeRating when meanFamiliarity = 0 and we're dealing with Class:Animal. We know Class:Animal is the reference level because R chooses the first alphabetical level to be the reference, and the model output only includes information for Class:Plant
+
+# To determine if the estimate of the intercept is significantly different from zero, we divide the Estimate by the Std. Error of the Estimate to get a t value, then we look up the t value on a t-distribution with appropriate degrees of freedom to calculate a p-value of the Null Hypothesis (that the true population coefficient is 0). A low p-value indicates that the Null Hypothesis is very unlikely, and we can reject it.
+
+# The Estimate of meanFamiliarity (continuous variable) is 0.18144. This indicates that with every 1 unit increase of meanFamiliarity, the dependent meanSizeRating increases by 0.18144 units. 
+```
+
+```{r}
+ggplot(ratings, aes(meanFamiliarity,meanSizeRating,color=Class)) + geom_point() + geom_smooth(method='lm')
+```
+
+```
+1. Compare the plot above to the model output. What does our model intercept correspond to here?
+2. Compare the coefficients from the model output; how do they map onto the plot?
+```
+
+```{r, class.source='example'}
+# The raw data slopes in the plot above look approximately the same for both Animal and Plant groups. The model estimate of the slopes is 0.18144 *meanFamiliarity. We didn't include an interaction between Class*MeanFamiliarity. If we did include the interaction, it would allow for each level of Class to have different slopes. 
+
+# The intercept estimate (3.03608) corresponds to the value when all predictor values are set to their reference levels (0 for continuous variables and the reference level for categorical variables). On the graph above, this is the estimate when meanFamiliarity=0 for the Animal group.
+
+# The estimate of the categorical variables is the measure of difference ('slope') between the reference level and the comparison level(s). 
+
+# In this case, the reference level is Animal and the Comparison estimate is that Class:plant is -1.92541. If we observe the raw data, we can see how the estimate maps on to the raw data histograms
+
+ggplot(ratings, aes(Class,meanSizeRating,color=Class)) + geom_boxplot() + stat_summary(fun.y=mean, geom='line',aes(group=1),color='black') + stat_summary(fun.y=mean, geom='point', color='black',size=2) + annotate("text",x=1.65,y=3,label = "-1.92541")
+
+# Now let's plot the raw data, but explicitly add the line formulas directly from the model output.
+
+ggplot(ratings, aes(meanFamiliarity,meanSizeRating,color=Class)) + geom_point() + geom_abline(intercept=3.03608,slope=0.18144,color="#F8766D") + geom_abline(intercept= (3.03608-1.92541),slope=0.18144,color="#00BFC4") + xlim(-2,9) + ylim(0,6)+ geom_vline(xintercept=0) + geom_hline(yintercept=0) +  annotate("rect",xmin=-0.25,xmax=0.25,ymin=(3.03608-0.25),ymax=(3.03608+0.25),alpha=0.5) + annotate("rect",xmin=-0.25,xmax=0.25,ymin=(3.03608-1.92541-0.25),ymax=(3.03608-1.92541+0.25),alpha=0.5) + annotate("text", x=-0.97,y=3.75,label="Intercept: 3.03608") + annotate("text", x=3.2,y=0.5,label="Intercept and fixed effect of Class:Plant: (3.03608 - 1.92541) = 1.11067") + annotate("text", x= 7.5, y=3.5,label="slope:0.18144",angle=14) + labs(title="Raw Data and Model Estimates with explanation")
+```
+
+## 3. Visualizing Model Fit
+
+```
+When considering how well our model fits the data, what should we look at or test?
+```
+
+Let's plot the model from earlier and discuss whether it matches these criteria.
+```{r}
+# plot1 shows Residuals Plotted Against the Predicted Value
+# The model's predictions of small things are better than its predictions of large things.
+
+# plot2 shows the distribution of the residuals on the y-axis (0 = mean of residuals), plotted against theoretical quantiles of a normal distribution. We can see a skew at the tails, showing some non-normality 
+
+# let's ignore plots 3-4
+plot(m1)
+```
+
+```{r, class.source = "example"}
+# we can also add the fitted values to the original data-frame to explore further in plots
+ratings$fitted <- fitted(m1)
+```
+
+```
+1. Create a new factor in the ratings df that is the residuals from the model.
+2. Create a ggplot which compares the fitted and actual values for meanSizeRatings (consider using `geom_abline(slope=1)` )
+3. Create a plot that compares the residuals between the two Classes. Is the model better at predicting one class than another?
+4. Create a plot that compares the residuals between different levels of Familiarity. Is the model better at predicting objects of certain levels of familiarity?
+```
+
+```{r, class.source = 'example'}
+ratings$residuals <- ratings$meanSizeRating - ratings$fitted
+
+ggplot(ratings, aes(meanSizeRating,fitted)) + geom_point() + geom_abline(slope=1)
+
+ggplot(ratings, aes(Class,residuals)) + geom_boxplot()
+
+# It appears the model is better at things that are plants (or smaller things; hard to tell because these are overlapping).
+
+ggplot(ratings, aes(meanFamiliarity,residuals)) + geom_point()
+
+# no clear pattern, but perhaps a slight tendency to have better predictions for more familiar items; perhaps this is due to correlation with some other feature, like class?
+```
+
+## 4. Homework Workshop
+

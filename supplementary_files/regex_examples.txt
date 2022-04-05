@@ -1,0 +1,33 @@
+# Match 'maria' in each of these:
+
+I told Maria yesterday.
+maria lololol
+Yeah that's right-Maria-the one who called
+
+# Don't Match
+grammarians
+mariachi
+
+
+# match 'ya..s' in these:
+yas
+yaas
+yaaaaaas
+um, yaas pls
+
+# don't match
+papayas rock
+her name is yasamin
+ys
+
+
+# Match days in the following lines
+
+4 Mondays in a row
+there are 67 Saturdays until the Summer Olympics
+I've spent 105 Thursdays at the cat cafe so far
+
+# but not in these lines
+Mondays are the worst
+Have you seen them come in on Saturdays ever?
+I've got a serious case of the Thursdays.

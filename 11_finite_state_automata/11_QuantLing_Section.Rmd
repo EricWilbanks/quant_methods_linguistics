@@ -1,0 +1,111 @@
+---
+title: "11_QuantLing_Section"
+author: "Eric Wilbanks"
+date: "4/17/2020 - 4/20/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{css echo=FALSE}
+.example{
+  background-color: rgba(30,206,124,.5);
+}
+```
+
+## 1. Goals for Section
+
+1. FSA review and exercises
+1. FST review and exercises
+
+## 2. Any other Questions?
+
+## 3. Finite State Automata (FSA)
+### 3.1 FSA Basics
+
+**Finite State Automata (FSAs)** 
+
+FSAs are mathematical machines/models of computation that **transition from one state to another in response to an input**.
+
+FSAs are characterized by:
+
+1. finite set of states ($Q$)
+1. set of transition values/symbol set ($\Sigma$)
+1. start state
+1. final state(s)
+1. transition function/matrix ($\delta(q,i)$)
+
+
+![Example FSA \#1](./fsa_pngs/01.png)
+
+```
+For the above FSA, what are the parameters we outlined as features of FSAs? ($Q$, $\Sigma$, etc.)
+```
+
+FSAs can be either **deterministic** or **non-deterministic**:
+
+- *deterministic*: has a unique transition for all state-symbol combinations (no decision point $\rightarrow$ deterministic)
+- *non-deterministic*: any non-unique transitions for any state-character combination
+
+```
+1) Is FSA #1 deterministic or non-deterministic? 
+2) What is one edit we could make to change it to the other option?
+```
+### 3.2 Acceptor FSAs
+
+One core application of FSAs is matching input strings to some pattern (like regular expressions). 
+If an FSA can take an input, process its sub-parts, and then successfully reach a final state, the input is **accepted**. Otherwise, it is rejected.
+
+```
+1) What types of strings can FSA #1 match/accept?
+2) What would a corresponding regular expression be?
+```
+
+![Example FSA \#2](./fsa_pngs/02.png)
+```
+1) What types of strings can FSA #2 match/accept?
+2) What would a corresponding regular expression be?
+3) Is it deterministic or non-deterministic?
+4) How can we edit this FSA to only accept English words?
+5) Would the resulting FSA be deterministic or non-deterministic?
+```
+
+## 4. Finite State Transducers (FST)
+
+Instead of moving through symbols in an input and checking to see if an FSA can accept the input, what if we could move through symbols in an input **and** build up an ouput based off of this?
+
+Consider the following Finite State Transducer (FST):
+
+![Example FST\#1](./fsa_pngs/03.png)
+
+### input = "ta"
+
+| current state | input symbol | output |
+| ------------- | ------------ | ------ |
+| q0            | t            | T      |
+| q1            | a            | Te     |
+| q2            |              | Te     |
+
+### input = "tooa"
+
+| current state | input symbol | output |
+| ------------- | ------------ | ------ |
+| q0            | t            | T      |
+| q1            | o            | Ti     |
+| q1            | o            | ?      |
+| q1            | a            | ?      |
+| q2            |              | ?      |
+
+
+### input = "Toa"
+
+?
+
+### input = "tta"
+
+?
+
+
+
+

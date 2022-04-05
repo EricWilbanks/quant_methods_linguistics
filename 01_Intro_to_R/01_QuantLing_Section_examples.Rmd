@@ -1,0 +1,163 @@
+---
+title: "01_QuantLing_Section"
+author: "Eric Wilbanks"
+date: "1/24/2020 - 1/27/2020"
+output: 
+  html_document: 
+    theme: paper
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{css echo=FALSE}
+.example{
+  background-color: rgba(30,206,124,.5);
+}
+```
+## 1. Goals for Section
+
+- understand purpose of `R` and `RStudio`
+- troubleshoot/confirm installation of `R` and `RStudio`
+- (briefly) discuss alternatives such as base R, Jupyter
+- explore basics of R syntax, variables, functions, and packages
+
+## 2. R and RStudio Purpose
+
+### R
+`R` is a language and platform for doing statistical analysis and data visualization. People like using `R` because
+
+1. It is free and open source
+2. It is well-supported and broadly used
+3. It easily allows for extensions (you could create your own packages to do a specific task!)
+4. It has a shallow learning curve
+
+```
+Why not use Python and Pandas for everything?
+```
+
+We might see a shift towards doing everything in Python in the future; right now, a lot of statistical methods are only formulated in R; there's a long history of development and error-checking code implementation in R. 
+
+### RStudio
+
+RStudio is an alternative GUI (graphical user interface) for R, and provides user-friendly features that are not found in basic R interpreters. 
+
+Let's discuss some of those features now.
+
+- Console
+- Environment tab
+- Plots
+- Organize and resize windows you need
+
+## 3. Numeric Operations
+The most basic use of R is for numeric calculations.
+
+```{r}
+10+5
+12/4
+3*2
+5^2
+(10/2)-1
+```
+
+
+## 4. Objects, Data-Structures, Variable Assignment
+
+R is an "object-oriented" language, meaning we define objects that contain data, and can refer to and manipulate these objects by their name.
+
+There are **various data-types**; we'll mainly focus on the first two: 
+
+- character
+- numeric
+- logical
+- integer
+- complex
+
+Note the differences between the `cat` variable, which we've filled with numeric data and the `dog` variable, which we've filled with character data. 
+
+```{r}
+cat <- 8
+dog <- "8"
+```
+
+```{r}
+cat
+```
+
+```{r}
+dog
+```
+
+```{r, eval = FALSE}
+cat + 8
+dog + 8
+```
+
+There are **various data-structures** that we can fill with data.
+
+- Vectors (we'll focus on these for now)
+- Data frames
+- Matrices
+- Lists
+
+```{r}
+trees <- c("elm", "oak", "cedar", "eucalyptus")
+trees
+```
+
+Vectors are ordered collections of elements. The `trees` vectors has 4 elements, each a character  type data-point. 
+
+We can reference specific elements of a vector with an index.
+
+```{r}
+trees[4]
+```
+
+**Note that unlike Python, R is 1-index. The first element is indexed with [1]**
+
+## 5. Functions
+Functions in R are handy wrappers for complicated tasks. The standard format is lower-case text followed by parentheses filled with arguments. 
+
+Let's consider the `rnorm` function, which randomly samples from a normal distribution (gaussian). 
+```{r}
+rnorm(3)
+```
+
+If you encounter a function and want to understand what it does, enter a `?` before the function name in the command line to open the documentation.
+
+**This is sometimes less helpful than a google search**
+
+```{r, eval=FALSE}
+?rnorm
+```
+
+1. Use the `rnorm` documentation to find out what the default parameters of the normal distribution it's drawing from are. 
+2. Then, use `rnorm` to generate 6 random samples from a Gaussian with mean of 50 and standard deviation equal to 0.4
+
+## 6. Packages
+
+Packages are collections of functions, objects, and other code which are not included in the "basic" set of R commands.
+
+Packages are one of two types:
+
+1. Included with the default installation, but must be loaded
+1. Not included with the default installation, must be installed before they can be loaded.
+
+To load a package, use the `library()` function. Whenever you restart R, you'll have to reload any packages you want to use that session.
+
+```{r, eval=FALSE}
+library(lme4)
+```
+
+```
+What does the lme4 package do?
+```
+
+If you don't have a package installed, you can install it with the `install.packages()` function. **Note the quotation marks!** 
+
+You only have to install a package once.
+
+```{r, eval=FALSE}
+install.packages('ggplot2')
+```
+

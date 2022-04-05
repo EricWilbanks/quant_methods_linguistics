@@ -1,0 +1,119 @@
+---
+title: "02_QuantLing_Section"
+author: "Eric Wilbanks"
+date: "1/31/2020 - 2/03/2020"
+output: 
+  html_document: 
+    theme: paper
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{css echo=FALSE}
+.example{
+  background-color: rgba(30,206,124,.5);
+}
+```
+
+## 1. Goals for Section
+
+- brief introductions and syllabus
+- dataframes 
+- ~~visualization basics~~
+
+## 2. Introductions and Syllabus
+
+## 3. Dataframes
+### 3.1 Basic Indexing
+```{r, eval=FALSE}
+# Install the languageR package if you haven't yet. 
+# Note that we're using # to comment out commands we don't want to execute.
+
+#install.packages('languageR')
+```
+
+```{r}
+# load the languageR package
+library(languageR)
+# load the dataset sizeRatings from the languageR package
+data(sizeRatings)
+```
+`sizeRatings` is a dataframe, a data structure in R that is a collection of row and column vectors.
+```{r, eval=FALSE}
+head(sizeRatings)
+str(sizeRatings)
+names(sizeRatings)
+dim(sizeRatings)
+?sizeRatings
+```
+```
+Use the commands above to explore the structure of the dataset. 
+1. What does each command do? 
+2. What are the relevant rows and columns of the dataset?
+```
+We can index elements (cells) and ranges of data.frames in different ways. The first method is similar to how we indexed vectors: `df[rows,columns]`
+```{r}
+sizeRatings[1,1]
+sizeRatings[2,]
+sizeRatings[8:10,3]
+sizeRatings[4:6,"Word"]
+```
+Another way to interact with data.frames is to refer to the column vectors (**factors**) by name, using the `$`: `df$factor`
+```{r}
+head(sizeRatings$Word)
+```
+```
+How would you complete the following commands to make the two subsets equal?
+```
+```{r, eval=FALSE}
+sizeRatings$Word[3:6] == sizeRatings[?,?]
+```
+
+### 3.2 Conditional Indexing
+We've been indexing parts of the dataframe by referring to row or column numbers or names. 
+
+We can extend this by indexing parts of the dataframe that meet some condition. For example, I could create a new dataframe that is all of the rows of the sizeRatings where the Word is "pigeon".
+
+```{r}
+pigeon <- sizeRatings[sizeRatings$Word == "pigeon",]
+```
+```{r, eval=FALSE}
+#What's happening here?
+str(pigeon$Word)
+summary(pigeon$Word)
+```
+Or we could create a subset where all of the size ratings are greater than 6.
+
+```{r}
+min(sizeRatings$Rating)
+min(sizeRatings[sizeRatings$Rating > 6,]$Rating)
+```
+
+Find the `Logical Operators` section on the website https://www.statmethods.net/management/operators.html
+
+Then, create different subsets of the dataframe that for the following criteria.
+```
+1. A data-frame where the word is either 'blackberry' or 'pigeon'
+2. A data-frame where the word is 'ant' and the participants are non-Native speakers of English.
+3. Calculate the mean of familiarity ratings for all plant class items.
+4. Calculate the mean of familiarity ratings for all animal class items.
+```
+
+Another useful operator is the `%in%` operator. This can be more efficient that many chained `or` statements.
+
+```{r}
+fruits <- sizeRatings[sizeRatings$Word %in% c('cherry','lemon','pear','blackberry'),]
+```
+
+We can also create new factors! In the code below, we add a new factor which has a value of `familiar` if `sizeRatings$MeanFamiliarity` is greater than 0.7, and `unfamiliar` if not. 
+
+```{r}
+sizeRatings$binary_MF <- ifelse(sizeRatings$MeanFamiliarity > 0.7, 'familiar', 'unfamiliar')
+```
+
+```
+What differences are there between $Language and $binary_MF when you call str(sizeRatings) ?
+
+Can you think of what differences there are between Factors and character vectors?
+```

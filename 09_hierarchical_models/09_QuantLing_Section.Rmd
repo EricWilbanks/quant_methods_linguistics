@@ -1,0 +1,182 @@
+---
+title: "09_QuantLing_Section"
+author: "Eric Wilbanks"
+date: "4/03/2020 - 4/06/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{css echo=FALSE}
+.example{
+  background-color: rgba(30,206,124,.5);
+}
+```
+
+## 1. Goals for Section
+
+1. FAQs - The New Normal
+1. HW3 Overview and Questions
+1. Model-Predicted Likelihood and Likelihood Ratio Test
+1. Hierarchical Models
+
+## 2. FAQs
+
+
+1. **What if I'm dealing with a sick family member, or lost job, or any other source of stress?**
+- First, don't fall into the trap of idolizing productivity during this period! You shouldn't feel pressured to continue on as normal, allow yourself to focus on your mental and physical wellbeing.
+
+Things that I would rather you do every day than worry about section:
+1) walk outside (while distancing) for 20 minutes
+2) drink some more water
+3) try out a yoga video on youtube (there are thousands)
+4) drink some more water
+5) zoom/skype with your family
+6) continue to drink water
+7) take a nap 
+
+This course priority should be lower for you. Take some time to take care of yourself and your family, and then focus on what you need to do to get a P.
+
+- Second, consider the resources provided by the university:
+  - (general support links) https://docs.google.com/spreadsheets/d/1tvkRxcm7bLCUDffHdOYJFZ3JiHZKClPnGFJi41O_P6M/
+  - (specific COVID-19 links) https://sa.berkeley.edu/covid19
+  - (emergency loans) https://financialaid.berkeley.edu/whats-new-financial-aid-and-scholarships
+  
+- Third, consider the resources provided by the state:
+  - Financial support options https://www.labor.ca.gov/coronavirus2019/#chart
+  - General coronavirus information: https://covid19.ca.gov/
+
+2. **What's going on with section?**
+- attendance is optional; I'll be posting the materials and video
+- meetings at typical times over Zoom; if you want to attend another section, just let me know!
+
+
+3. **What's going on with lecture grading?**
+- default grading option has changed to P/NP.
+- if you want a letter grade, you can change it before May 6
+- for LING majors: P/NP grades from this semester will count toward LING major (see Prof. Jenks' email).
+
+
+## 3. Other Questions?
+
+## 4. Homework 3 Overview
+
+## 5. Model-Predicted Likelihood and Likelihood Ratio Test
+
+Let's try breaking out into groups now (if I can get things to work) to think about the following questions:
+
+```
+1. What is `model-predicted likelihood`?
+2. Say I fit a logistic regression model to predict if it was Rainy or Sunny outside. I work out the inverse-logit and find that I predict 40% rainy and 60% sunny (just intercept model).
+  a) What is the model-predicted likelihood of two Sunny days in a row?
+  b) What is the model-predicted likelihood of two Rainy days in a row?
+  c) What is the model-predicted likelihood of S-R-S?
+3. These values are small, which leads to the calculation of Deviance. What is the null hypothesis of likelihood ratio tests between two logistic regression models?
+```
+
+```{r, class.source="example",include=FALSE}
+#1. Model-Predicted likelihood is how likely a given data set is, based on our model probability estimates.
+
+#2a
+.6 * .6
+
+#2b
+.4 * .4
+
+#2c
+.6 * .4 * .6
+
+# 3. The Null hypothesis of the likelihood ratio test is that the additional term in the complex model is equal to 0
+# (this is equivalent to the null hypothesis that the change in deviance between two models is not significantly different from 1)
+
+```
+
+## 6. Hierarchical Models
+
+Hierarchical ("Mixed") Models have both **fixed** predictors (which we've been dealing with so far) and **random** predictors.
+
+```
+1. At a high level, how are random effects/predictors different from fixed predictors?
+2. What types of uses could they have in modeling language data?
+```
+
+```{r, class.source="example",include=FALSE}
+
+##############
+# This first question isn't an easy one; random vs. fixed is used to define several distinct situations and different subfields might care about one situation over another; for linguists, we often focus on the following definition:
+#
+# 1. random effects account for dependence of variability coming from a common source (e.g., speaker) for cases when we have a *random* sample of the full set
+#     - for example, we have data points all by the same speaker (non-independent!), but we have a random subset of speakers
+#     - compare this to an experiment with a categorical fixed predictor: we have fully exhausted all the possible levels
+#
+#
+# 2. Great for accounting for things like speakers, words, etc. where the observations are non-independent, but we haven't sampled the full set of levels.
+##############
+```
+
+```
+That's a theoretical difference; how are fixed and random effects different in the model?
+```
+Fixed effects are estimated with complete pooling (e.g., intercept is just estimated grand mean) where as random effects are estimated with **partial pooling** (e.g., estimates of each individual adjustment is weighted by amount of data for that individual level, balanced against estimate grand mean) [[see e.g., http://www.win-vector.com/blog/2017/09/partial-pooling-for-lower-variance-variable-encoding/#more-5245]]
+
+```{r, message = FALSE}
+library(lme4)
+library(languageR)
+data(lexdec)
+
+# subject is fixed effect
+m1 <- lm(RT ~ Subject, lexdec)
+
+# subject is random effect
+m2 <- lmer(RT ~ (1|Subject), lexdec)
+
+summary(m1)
+summary(m2)
+
+# observed mean RT for all subjects
+mean(lexdec$RT)
+
+# observed mean RT for Subject A1
+mean(lexdec[lexdec$Subject == 'A1',]$RT)
+
+# estimate for A1 as fixed effect:
+unname(m1$coefficients[1])
+
+# estimate for A1 as random effect:
+unname(fixef(m2) + ranef(m2)$Subject['A1',])
+
+###################
+# in single predictor model, fixed estimates are based on complete pooling of data
+# this is why the prediction for A1 as a fixed predictor (m1) is equal to the observed mean for A1 RT
+# in a single predictor model, random estimates are based on partial pooling (not just average of A1, mix of overall mean and sub-group mean)
+# the estimate for A1 is biased away from the observed A1 mean and towards the overall group mean (because of partial pooling)
+###################
+```
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+library(dplyr)
+library(ggplot2)
+
+# gather random estimates for all Speakers
+random_coefs <- fixef(m2) + ranef(m2)$Subject
+random_coefs$Subject <- rownames(random_coefs)
+obs_means <- as.data.frame(lexdec %>% group_by(Subject) %>% summarize(avg = mean(RT)))
+df <- merge(random_coefs,obs_means,by='Subject')
+names(df)[2] <- 'ranef'
+
+ggplot(df, aes(avg,ranef)) + geom_point() + geom_abline() + labs(title = "Comparison Between Observed Means and Random Effect Estimates\n(Black Line is y=x)")
+```
+
+We can tell that the Subject random effects to the left seem to be higher than the identity line (higher than the observed mean for that subject), while the random effects to the right seem to be lower than the identity line (lower than the observed mean for that subject).
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+ggplot(df, aes(avg,(ranef-avg))) + geom_point() + geom_hline(yintercept=0,color='blue') + geom_vline(xintercept = mean(lexdec$RT),color='red') + labs(title="Random Estimate - Observed Mean over different Observed Means") + annotate('text', x = 6.65, y = 0.001, label='RanEf = Obs Mean for Speaker', color='blue') + annotate('text', x = 6.5, y = -0.006, label = 'Pooled Obs Mean', color = 'red')
+```
+
+We can see the same pattern a different way. Here, some values on the left are positive (RanEf > Obs Mean Speaker). Some values on the right are negative (RanEf < Obs Mean Speaker). 
+
+So what we're seeing is the effects of partial-pooling: the strength of the random effects are **shrunk** towards the overall grand mean, compared to what they would be if they were fixed effects.
+
+This corresponds to our theoretical difference between fixed and random effects: random effects are a random sample/subset from a larger population, and therefore we are more conservative about our estimates for them and rely some on the grand mean (partial pooling).
+
